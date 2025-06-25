@@ -3,7 +3,7 @@
         BIRD SOUND FREQUENCY ANALYZER - MINI PROJECT
 ===========================================================
 
-Author      : Your Name
+Author      : Mohd Osaid
 Date        : June 1, 2025
 Description : This script analyzes bird audio files to find
               their dominant frequency using FFT.
@@ -14,10 +14,6 @@ Description : This script analyzes bird audio files to find
 import librosa
 import numpy as np
 import time
-
-# Optional: Uncomment if you want stylish terminal output
-# from colorama import Fore, Style, init
-# init()
 
 # ===== PROJECT BANNER =====
 print("="*60)
