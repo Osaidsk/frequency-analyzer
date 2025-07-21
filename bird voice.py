@@ -22,10 +22,36 @@ print("="*60)
 
 # ===== AUDIO FILE LIST =====
 audio_paths = [
-    r'C:\Users\user\Downloads\the-cry-of-a-beautiful-bird.mp3',
-    r'C:\Users\user\Downloads\the-cry-of-an-eagle.mp3',
-    r'C:\Users\user\Downloads\the-long-chirping-of-a-sparrow.mp3',
-    r'C:\Users\user\Downloads\the-sound-of-a-crow-croaking.mp3'
+    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan2.mp3',
+    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan3.mp3',
+    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan4.mp3',
+    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan5.mp3',
+    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan6.mp3',
+    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan7.mp3',
+    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan8.mp3',
+    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan9.mp3',
+    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan10.mp3',
+    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan11.mp3',
+    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan12.mp3',
+    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan13.mp3',
+    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan14.mp3',
+    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan15.mp3',
+    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan16.mp3',
+    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan17.mp3',
+    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan18.mp3',
+    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan19.mp3',
+    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan20.mp3',
+    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan21.mp3',
+    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan22.mp3',
+    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan23.mp3',
+    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan24.mp3',
+    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan25.mp3',
+    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan26.mp3',
+    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan27.mp3',
+    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan28.mp3',
+    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan29.mp3',
+    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan30.mp3'
+
 ]
 
 # ===== TIMER START =====
@@ -35,39 +61,42 @@ start_time = time.time()
 print("\nStarting frequency analysis of bird audio samples...\n")
 
 dominant_frequencies = []
-i = 0
-while i < 4:
-    print(f"\nProcessing sample {i+1}: {audio_paths[i]}")
+  for i, path in enumerate(audio_paths):
+    print(f"\nProcessing sample {i+1}: {path}")
 
-    # Load the audio
-    y, sr = librosa.load(audio_paths[i])
+    try:
+        y, sr = librosa.load(path, sr=None)
 
-    # Apply FFT
-    n = len(y)
-    Y = np.fft.fft(y)
-    magnitude = np.abs(Y)
-    freq = np.fft.fftfreq(n, d=1/sr)
+        # Skip silent files
+        if np.max(np.abs(y)) < 0.01:
+            print("Audio too silent — skipping...")
+            dominant_frequencies.append(0.0)
+            continue
 
-    # Positive frequencies only
-    half_n = n // 2
-    positive_freqs = freq[:half_n]
-    positive_magnitude = magnitude[:half_n]
+        # Normalize
+        y = y / np.max(np.abs(y))
 
-    # Find dominant frequency
-    peak_idx = np.argmax(positive_magnitude)
-    dominant_freq = positive_freqs[peak_idx]
+        # FFT
+        n = len(y)
+        Y = np.fft.fft(y)
+        magnitude = np.abs(Y)
+        freq = np.fft.fftfreq(n, d=1/sr)
 
-    print(f"Dominant frequency: {dominant_freq:.2f} Hz")
-    dominant_frequencies.append(dominant_freq)
-    i += 1
+        # Filter positive frequencies above 100 Hz
+        valid_indices = (freq > 100) & (freq < sr / 2)
+        positive_freqs = freq[valid_indices]
+        positive_magnitude = magnitude[valid_indices]
 
-# ===== RESULTS SUMMARY =====
-print("\n================= DOMINANT FREQUENCY SUMMARY =================")
-print("{:<10} {:<50} {:>15}".format("Sample", "Filename", "Frequency (Hz)"))
-print("-" * 80)
-for idx, freq in enumerate(dominant_frequencies):
-    filename = audio_paths[idx].split('\\')[-1]
-    print("{:<10} {:<50} {:>15.2f}".format(f"Sample {idx+1}", filename, freq))
+        peak_idx = np.argmax(positive_magnitude)
+        dominant_freq = positive_freqs[peak_idx]
+
+        print(f"Dominant frequency: {dominant_freq:.2f} Hz")
+        dominant_frequencies.append(dominant_freq)
+
+    except Exception as e:
+        print(f"Error processing file: {e}")
+        dominant_frequencies.append(0.0)
+
 
 # ===== EXECUTION TIME =====
 end_time = time.time()
