@@ -61,7 +61,7 @@ start_time = time.time()
 print("\nStarting frequency analysis of bird audio samples...\n")
 
 dominant_frequencies = []
-  for i, path in enumerate(audio_paths):
+for i, path in enumerate(audio_paths):
     print(f"\nProcessing sample {i+1}: {path}")
 
     try:
