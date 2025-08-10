@@ -1,107 +1,53 @@
-"""
-===========================================================
-        BIRD SOUND FREQUENCY ANALYZER - MINI PROJECT
-===========================================================
-
-Author      : Mohd Osaid
-Date        : June 1, 2025
-Description : This script analyzes bird audio files to find
-              their dominant frequency using FFT.
-===========================================================
-"""
-
-# ===== IMPORTS =====
 import librosa
 import numpy as np
 import time
+from pathlib import Path
 
-# ===== PROJECT BANNER =====
+# === Banner ===
 print("="*60)
 print("         WELCOME TO BIRD SOUND FREQUENCY ANALYZER")
 print("="*60)
 
-# ===== AUDIO FILE LIST =====
-audio_paths = [
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan2.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan3.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan4.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan5.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan6.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan7.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan8.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan9.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan10.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan11.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan12.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan13.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan14.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan15.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan16.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan17.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan18.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan19.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan20.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan21.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan22.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan23.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan24.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan25.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan26.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan27.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan28.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan29.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan30.mp3'
+# === Load audio files ===
+folder_path = Path(r"C:\Users\user\Desktop\AI_ML\Andean Guan_sound")
+audio_paths = list(folder_path.glob("*.mp3"))
 
-]
+print(f"\nFound {len(audio_paths)} audio files. Starting analysis...\n")
 
-# ===== TIMER START =====
+# === Timer start ===
 start_time = time.time()
 
-# ===== ANALYSIS BEGINS =====
-print("\nStarting frequency analysis of bird audio samples...\n")
-
+# === Main loop ===
 dominant_frequencies = []
-for i, path in enumerate(audio_paths):
-    print(f"\nProcessing sample {i+1}: {path}")
 
+for i, path in enumerate(audio_paths):
+    print(f"\nProcessing sample {i+1}: {path.name}")
     try:
         y, sr = librosa.load(path, sr=None)
 
-        # Skip silent files
         if np.max(np.abs(y)) < 0.01:
             print("Audio too silent — skipping...")
             dominant_frequencies.append(0.0)
             continue
 
-        # Normalize
         y = y / np.max(np.abs(y))
-
-        # FFT
-        n = len(y)
         Y = np.fft.fft(y)
+        freq = np.fft.fftfreq(len(y), d=1/sr)
         magnitude = np.abs(Y)
-        freq = np.fft.fftfreq(n, d=1/sr)
 
-        # Filter positive frequencies above 100 Hz
-        valid_indices = (freq > 100) & (freq < sr / 2)
-        positive_freqs = freq[valid_indices]
-        positive_magnitude = magnitude[valid_indices]
-
-        peak_idx = np.argmax(positive_magnitude)
-        dominant_freq = positive_freqs[peak_idx]
+        valid = (freq > 100) & (freq < sr / 2)
+        peak = np.argmax(magnitude[valid])
+        dominant_freq = freq[valid][peak]
 
         print(f"Dominant frequency: {dominant_freq:.2f} Hz")
         dominant_frequencies.append(dominant_freq)
 
     except Exception as e:
-        print(f"Error processing file: {e}")
+        print(f"Error: {e}")
         dominant_frequencies.append(0.0)
 
-
-# ===== EXECUTION TIME =====
-end_time = time.time()
-print("\nTotal Execution Time: {:.2f} seconds".format(end_time - start_time))
-
-# ===== CLOSING MESSAGE =====
+# === Timer end ===
+print(f"\nTotal Execution Time: {time.time() - start_time:.2f} seconds")
 print("\nThank you for using the Bird Sound Frequency Analyzer!")
 print("="*60)
+
