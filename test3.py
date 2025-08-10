@@ -1,66 +1,50 @@
+
+from pathlib import Path
+import pandas as pd
 import librosa
 import numpy as np
-import pandas as pd
-import glob
-import os
 
-# ===== SET ROOT DATA FOLDER =====
-root_folder = r'C:\Users\user\Desktop\AI_ML\data-1'
+# ===== LOAD AUDIO FILES =====
+folder_path = Path(r"C:\Users\user\Desktop\AI_ML\Voice of Birds\Andean Guan_sound")
+audio_paths = list(folder_path.glob("*.mp3"))
 
-# Recursively find all mp3 files in subfolders
-audio_paths = sorted(glob.glob(os.path.join(root_folder, '*', '*.mp3')))
+print(f"\nFound {len(audio_paths)} audio files for analysis...\n")
 
 results = []
 
-print(f"\nFound {len(audio_paths)} audio files. Starting analysis...\n")
-
-for i, path in enumerate(audio_paths):
-    filename = os.path.basename(path)
-    
-    # Species is the parent folder name
-    species = os.path.basename(os.path.dirname(path)).capitalize()
-
-    print(f"Processing {i+1}/{len(audio_paths)}: {filename} ({species})")
-
+# ===== ANALYZE EACH AUDIO FILE =====
+for audio_file in audio_paths:
     try:
-        y, sr = librosa.load(path, sr=None)
-        
-        if np.max(np.abs(y)) < 0.01:
-            print("Silent file — skipping.")
-            results.append([filename, species, 0.0])
-            continue
-        
-        y = y / np.max(np.abs(y))
+        y, sr = librosa.load(audio_file, sr=None)
+        # Perform FFT
+        spectrum = np.fft.fft(y)
+        freqs = np.fft.fftfreq(len(spectrum), 1 / sr)
+        magnitude = np.abs(spectrum)
 
-        n = len(y)
-        Y = np.fft.fft(y)
-        magnitude = np.abs(Y)
-        freq = np.fft.fftfreq(n, d=1/sr)
+        # Take dominant frequency (ignore negative freqs)
+        positive_freqs = freqs[:len(freqs)//2]
+        positive_magnitude = magnitude[:len(magnitude)//2]
+        dominant_freq = positive_freqs[np.argmax(positive_magnitude)]
 
-        valid_indices = (freq > 100) & (freq < sr / 2)
-        freqs = freq[valid_indices]
-        mags = magnitude[valid_indices]
-
-        if len(mags) == 0:
-            print("No valid frequencies — skipping.")
-            results.append([filename, species, 0.0])
-            continue
-
-        peak_idx = np.argmax(mags)
-        dom_freq = freqs[peak_idx]
-
-        print(f"Dominant Frequency: {dom_freq:.2f} Hz")
-        results.append([filename, species, dom_freq])
+        species = audio_file.stem.split("_")[0]  # Extract species name
+        results.append({
+            "Filename": audio_file.name,
+            "Species": species,
+            "Dominant_Frequency_Hz": round(dominant_freq, 2)
+        })
 
     except Exception as e:
-        print(f"Error processing {filename}: {e}")
-        results.append([filename, species, 0.0])
+        print(f"Error processing {audio_file.name}: {e}")
 
-# ===== SAVE TO CSV =====
-df = pd.DataFrame(results, columns=['Filename', 'Species', 'Dominant_Frequency_Hz'])
-df.to_csv('bird_dataset_dominant_freq.csv', index=False)
+# ===== SAVE RESULTS =====
+df = pd.DataFrame(results)
+df.to_csv("bird_dataset_dominant_freq.csv", index=False)
+
 print("\n✅ Analysis complete. Data saved to 'bird_dataset_dominant_freq.csv'.")
 
-# Preview
 print("\nSample results:")
 print(df.head())
+
+print("\nAverage Dominant Frequency by Species:")
+summary_df = df.groupby("Species")["Dominant_Frequency_Hz"].mean().reset_index()
+print(summary_df)
