@@ -7,7 +7,7 @@ This project analyzes audio recordings of bird sounds to determine their dominan
 
 Features
 
-Extracts and visualizes the dominant frequency from audio files
+Extracts the dominant frequency from audio files
 Focuses on bird voice recordings
 Written entirely in Python
 Simple and easy to use
@@ -19,30 +19,44 @@ Python 3.x
 
 Required packages (install with pip):
 bash
-pip install numpy scipy matplotlib
+pip install  librosa pandas numpy
 
 Usage
 
-Place your audio file (e.g., WAV format) in the project directory.
+Place your audio file (.mp3) in the project directory.
 
 Run the main script:
 bash
-python "bird voice.py"
+python "Frequency_analyzer.py"
 
 Follow the on-screen prompts to analyze your file.
 
-Example Output
+Example Output:
+    
+    Found 30 audio files for analysis...
 
-Plots of the original waveform and its frequency spectrum
+
+  ✅ Analysis complete. Data saved to 'bird_dataset_dominant_freq.csv'.
+
+  Sample results:
+    
+            Filename             Species            Dominant_Frequency_Hz
+
+    0  Andean Guan10.mp3      Andean Guan10                  28.97
+
+    1  Andean Guan11.mp3      Andean Guan11                1274.80
+
+    2  Andean Guan12.mp3      Andean Guan12                1416.15
+
+    3  Andean Guan13.mp3      Andean Guan13                1504.31
+
+    4  Andean Guan14.mp3      Andean Guan14                1239.44
+
 Printed dominant frequency value
 
 Files
 
-bird voice.py – Main script for frequency analysis
-
-License
-
-This project is licensed under the MIT License.
+Frequency_analyzer.py – Main script for frequency analysis
 
 Author
 Osaidsk
