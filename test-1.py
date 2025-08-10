@@ -11,58 +11,30 @@ Description : This script analyzes bird audio files to find
 """
 
 # ===== IMPORTS =====
-import librosa
-import numpy as np
 import time
+import numpy as np
+import librosa
+from pathlib import Path
 
-# ===== PROJECT BANNER =====
-print("="*60)
+# ===== BANNER =====
+print("=" * 60)
 print("         WELCOME TO BIRD SOUND FREQUENCY ANALYZER")
-print("="*60)
+print("=" * 60)
 
-# ===== AUDIO FILE LIST =====
-audio_paths = [
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan2.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan3.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan4.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan5.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan6.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan7.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan8.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan9.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan10.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan11.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan12.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan13.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan14.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan15.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan16.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan17.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan18.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan19.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan20.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan21.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan22.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan23.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan24.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan25.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan26.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan27.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan28.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan29.mp3',
-    r'C:\Users\user\Desktop\AI_ML\Andean Guan_sound\Andean Guan30.mp3'
-]
+# ===== LOAD AUDIO FILES =====
+folder_path = Path(r"C:\Users\user\Desktop\AI_ML\Voice of Birds\Andean Guan_sound")
+audio_paths = list(folder_path.glob("*.mp3"))
 
-# ===== TIMER START =====
+print(f"\nFound {len(audio_paths)} audio files for analysis...\n")
+
+# ===== START TIMER =====
 start_time = time.time()
 
-# ===== ANALYSIS BEGINS =====
-print("\nStarting frequency analysis of bird audio samples...\n")
-
+# ===== MAIN ANALYSIS =====
 dominant_frequencies = []
 
 for i, path in enumerate(audio_paths):
-    print(f"\nProcessing sample {i+1}: {path}")
+    print(f"\nProcessing sample {i + 1}: {path.name}")
 
     try:
         y, sr = librosa.load(path, sr=None)
@@ -80,20 +52,17 @@ for i, path in enumerate(audio_paths):
         n = len(y)
         Y = np.fft.fft(y)
         magnitude = np.abs(Y)
-        freq = np.fft.fftfreq(n, d=1/sr)
+        freq = np.fft.fftfreq(n, d=1 / sr)
 
         # Filter positive frequencies above 100 Hz
-        valid_indices = (freq > 100) & (freq < sr / 2)
-        positive_freqs = freq[valid_indices]
-        positive_magnitude = magnitude[valid_indices]
-
-        if len(positive_magnitude) == 0:
+        valid = (freq > 100) & (freq < sr / 2)
+        if not np.any(valid):
             print("No valid frequency content — skipping...")
             dominant_frequencies.append(0.0)
             continue
 
-        peak_idx = np.argmax(positive_magnitude)
-        dominant_freq = positive_freqs[peak_idx]
+        peak_idx = np.argmax(magnitude[valid])
+        dominant_freq = freq[valid][peak_idx]
 
         print(f"Dominant frequency: {dominant_freq:.2f} Hz")
         dominant_frequencies.append(dominant_freq)
@@ -102,18 +71,18 @@ for i, path in enumerate(audio_paths):
         print(f"Error processing file: {e}")
         dominant_frequencies.append(0.0)
 
-# ===== SUMMARY =====
+# ===== PRINT SUMMARY =====
 print("\n================= DOMINANT FREQUENCY SUMMARY =================")
 print("{:<10} {:<50} {:>15}".format("Sample", "Filename", "Frequency (Hz)"))
 print("-" * 80)
 for idx, freq in enumerate(dominant_frequencies):
-    filename = audio_paths[idx].split('\\')[-1]
+    filename = audio_paths[idx].name  # Cleaner than .split("\\")
     print("{:<10} {:<50} {:>15.2f}".format(f"Sample {idx+1}", filename, freq))
 
 # ===== EXECUTION TIME =====
 end_time = time.time()
 print("\nTotal Execution Time: {:.2f} seconds".format(end_time - start_time))
 
-# ===== CLOSING MESSAGE =====
+# ===== END =====
 print("\nThank you for using the Bird Sound Frequency Analyzer!")
-print("="*60)
+print("=" * 60)
